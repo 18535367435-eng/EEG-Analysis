@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>脑电数据分析系统</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.8/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/d3@7.8.5/dist/d3.min.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#3B82F6',
+                        secondary: '#10B981',
+                        accent: '#6366F1',
+                        dark: '#1E293B',
+                        light: '#F8FAFC'
+                    },
+                    fontFamily: {
+                        inter: ['Inter', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .content-auto {
+                content-visibility: auto;
+            }
+            .card-shadow {
+                box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            }
+            .gradient-bg {
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            }
+            .glass-effect {
+                backdrop-filter: blur(10px);
+                background-color: rgba(255, 255, 255, 0.1);
+            }
+        }
+    </style>
+</head>
+<body class="bg-light font-inter min-h-screen">
+    <!-- 导航栏 -->
+    <nav class="bg-dark text-white shadow-md sticky top-0 z-50">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center space-x-2">
+                <i class="fa fa-brain text-2xl text-primary"></i>
+                <h1 class="text-xl font-bold">脑电数据分析系统</h1>
+            </div>
+            <div class="hidden md:flex space-x-6">
+                <a href="#" class="hover:text-primary transition-colors">首页</a>
+                <a href="#features" class="hover:text-primary transition-colors">功能</a>
+                <a href="#analysis" class="hover:text-primary transition-colors">分析结果</a>
+            </div>
+            <div class="md:hidden">
+                <button class="text-white focus:outline-none">
+                    <i class="fa fa-bars text-xl"></i>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 主要内容 -->
+    <main class="container mx-auto px-4 py-8">
+        <!-- 公司介绍 -->
+        <section class="bg-white rounded-xl p-6 mb-8 card-shadow">
+            <p class="text-gray-700 leading-relaxed">
+                北京脑智星耀科技有限公司深耕非侵入式脑机接口技术研发与产业化应用，核心产品涵盖Brduino脑机开发平台、VisionBCI消费级脑机头环、脑电科研产品及神经科医疗康复产品等，部分产品性能达到国际头部水平且实现国产化替代。公司技术落地娱乐、医疗、教育、科研、工业等多领域，服务海内外500余家客户，以硬核技术实力推动脑机接口技术从科研走向规模化应用。
+            </p>
+        </section>
+        
+        <!-- 英雄区 -->
+        <section class="gradient-bg rounded-2xl p-8 mb-10 text-white">
+            <div class="max-w-3xl mx-auto text-center">
+                <h2 class="text-[clamp(1.8rem,5vw,3rem)] font-bold mb-4">脑电数据可视化与分析平台（仅用于测试，不用于商业）</h2>
+                <p class="text-lg mb-8">上传您的脑电数据，获取专业的功率谱密度分析、波形显示以及各种脑电波能量评估。</p>
+                <button id="uploadBtn" class="bg-white text-dark font-bold py-3 px-8 rounded-full hover:bg-opacity-90 transition-all transform hover:scale-105">
+                    <i class="fa fa-upload mr-2"></i>上传脑电数据
+                </button>
+                <input type="file" id="fileInput" accept=".csv,.txt,.edf" class="hidden" />
+            </div>
+        </section>
+
+        <!-- 功能展示 -->
+        <section id="features" class="mb-12">
+            <h2 class="text-3xl font-bold text-center mb-8 text-dark">强大功能</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="bg-white rounded-xl p-6 card-shadow hover:transform hover:translate-y-[-5px] transition-all">
+                    <div class="text-primary text-4xl mb-4"><i class="fa fa-line-chart"></i></div>
+                    <h3 class="text-xl font-bold mb-2">脑电波形显示</h3>
+                    <p class="text-gray-600">实时显示脑电信号波形，支持多通道数据，可缩放和拖动查看细节。</p>
+                </div>
+                <div class="bg-white rounded-xl p-6 card-shadow hover:transform hover:translate-y-[-5px] transition-all">
+                    <div class="text-secondary text-4xl mb-4"><i class="fa fa-bar-chart"></i></div>
+                    <h3 class="text-xl font-bold mb-2">功率谱密度分析</h3>
+                    <p class="text-gray-600">计算并可视化脑电信号的功率谱密度，帮助识别主要频率成分。</p>
+                </div>
+                <div class="bg-white rounded-xl p-6 card-shadow hover:transform hover:translate-y-[-5px] transition-all">
+                    <div class="text-accent text-4xl mb-4"><i class="fa fa-pie-chart"></i></div>
+                    <h3 class="text-xl font-bold mb-2">脑波能量分析</h3>
+                    <p class="text-gray-600">分析并展示阿尔法、贝塔、西塔、德尔塔等不同频段脑波的相对能量。</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 文件上传区域 -->
+        <section id="upload-section" class="mb-12 bg-white rounded-xl p-6 card-shadow">
+            <h3 class="text-2xl font-bold mb-6 text-dark">上传脑电数据</h3>
+            <div id="dropZone" class="border-2 border-dashed border-gray-300 rounded-xl p-10 text-center hover:border-primary transition-colors cursor-pointer">
+                <i class="fa fa-cloud-upload text-5xl text-gray-400 mb-4"></i>
+                <p class="text-gray-500 mb-4">拖拽文件到此处或点击选择文件</p>
+                <p class="text-sm text-gray-400">支持 CSV, TXT, EDF 格式</p>
+                <button id="browseBtn" class="mt-4 bg-primary text-white py-2 px-6 rounded-lg hover:bg-opacity-90 transition-all">
+                    <i class="fa fa-folder-open mr-2"></i>浏览文件
+                </button>
+            </div>
+            <div id="fileInfo" class="mt-6 hidden">
+                <div class="flex items-center p-3 bg-gray-100 rounded-lg">
+                    <i class="fa fa-file-text-o text-primary text-xl mr-3"></i>
+                    <div class="flex-1">
+                        <h4 id="fileName" class="font-medium"></h4>
+                        <p id="fileSize" class="text-sm text-gray-500"></p>
+                    </div>
+                    <button id="removeFile" class="text-red-500 hover:text-red-700 transition-colors">
+                        <i class="fa fa-times"></i>
+                    </button>
+                </div>
+                <button id="processFile" class="mt-4 bg-secondary text-white py-2 px-6 rounded-lg hover:bg-opacity-90 transition-all">
+                    <i class="fa fa-cogs mr-2"></i>开始分析
+                </button>
+            </div>
+        </section>
+
+        <!-- 分析结果区域 -->
+        <section id="analysis" class="mb-12 hidden">
+            <h3 class="text-2xl font-bold mb-6 text-dark">分析结果</h3>
+            
+            <!-- 控制面板 -->
+            <div class="bg-white rounded-xl p-4 card-shadow mb-6">
+                <div class="flex flex-wrap gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">选择通道</label>
+                        <select id="channelSelect" class="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary">
+                            <!-- 动态填充通道选项 -->
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">时间范围</label>
+                        <select id="timeRangeSelect" class="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary">
+                            <option value="10">最近10秒</option>
+                            <option value="30">最近30秒</option>
+                            <option value="60">最近1分钟</option>
+                            <option value="all">全部</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">刷新间隔</label>
+                        <select id="refreshRateSelect" class="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary">
+                            <option value="1000">1秒</option>
+                            <option value="2000">2秒</option>
+                            <option value="5000">5秒</option>
+                            <option value="manual">手动</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">采样频率 (Hz)</label>
+                        <input type="number" id="sampleRateInput" class="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary" value="250" min="1" max="10000">
+                    </div>
+                    
+                    <style>
+                        /* 刷新按钮动画 */
+                        #refreshBtn.refreshing {
+                            background-color: #3B82F6;
+                            transform: rotate(180deg);
+                            transition: all 0.5s ease;
+                        }
+                        
+                        #refreshBtn {
+                            transition: all 0.3s ease;
+                        }
+                        
+                        /* 采样率输入框变化提示 */
+                        #sampleRateInput:focus {
+                            border-color: #10B981;
+                            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2);
+                        }
+                        
+                        /* 图表容器样式增强 */
+                        .chart-container {
+                            transition: all 0.5s ease;
+                        }
+                        
+                        .chart-container.updated {
+                            border: 2px solid #4ECDC4;
+                            border-radius: 8px;
+                        }
+                    </style>
+                    <div class="ml-auto">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">操作</label>
+                        <button id="refreshBtn" class="bg-primary text-white px-4 py-2 rounded-lg hover:bg-opacity-90 transition-all">
+                            <i class="fa fa-refresh mr-1"></i>刷新
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 脑电波形图表 -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                <div class="bg-white rounded-xl p-4 card-shadow">
+                    <h4 class="text-xl font-bold mb-4 text-dark">脑电波形</h4>
+                    <div class="h-80">
+                        <canvas id="waveformChart"></canvas>
+                    </div>
+                </div>
+                
+                <!-- 功率谱密度图表 -->
+                <div class="bg-white rounded-xl p-4 card-shadow">
+                    <h4 class="text-xl font-bold mb-4 text-dark">功率谱密度</h4>
+                    <div class="h-80">
+                        <canvas id="psdChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 脑波能量分析 -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- 脑波能量饼图 -->
+                <div class="bg-white rounded-xl p-4 card-shadow">
+                    <h4 class="text-xl font-bold mb-4 text-dark">脑波能量分布</h4>
+                    <div class="h-80">
+                        <canvas id="brainWaveChart"></canvas>
+                    </div>
+                </div>
+                
+                <!-- 脑波能量数值 -->
+                <div class="bg-white rounded-xl p-4 card-shadow">
+                    <h4 class="text-xl font-bold mb-4 text-dark">脑波能量详情</h4>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="border border-gray-200 rounded-lg p-4 bg-blue-50">
+                            <div class="flex justify-between items-center mb-2">
+                                <span class="font-medium">德尔塔波 (0.5-4Hz)</span>
+                                <span id="deltaValue" class="text-blue-600 font-bold">0.0</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-2">
+                                <div id="deltaBar" class="bg-blue-600 h-2 rounded-full" style="width: 0%"></div>
+                            </div>
+                        </div>
+                        <div class="border border-gray-200 rounded-lg p-4 bg-purple-50">
+                            <div class="flex justify-between items-center mb-2">
+                                <span class="font-medium">西塔波 (4-8Hz)</span>
+                                <span id="thetaValue" class="text-purple-600 font-bold">0.0</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-2">
+                                <div id="thetaBar" class="bg-purple-600 h-2 rounded-full" style="width: 0%"></div>
+                            </div>
+                        </div>
+                        <div class="border border-gray-200 rounded-lg p-4 bg-green-50">
+                            <div class="flex justify-between items-center mb-2">
+                                <span class="font-medium">阿尔法波 (8-13Hz)</span>
+                                <span id="alphaValue" class="text-green-600 font-bold">0.0</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-2">
+                                <div id="alphaBar" class="bg-green-600 h-2 rounded-full" style="width: 0%"></div>
+                            </div>
+                        </div>
+                        <div class="border border-gray-200 rounded-lg p-4 bg-red-50">
+                            <div class="flex justify-between items-center mb-2">
+                                <span class="font-medium">贝塔波 (13-30Hz)</span>
+                                <span id="betaValue" class="text-red-600 font-bold">0.0</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-2">
+                                <div id="betaBar" class="bg-red-600 h-2 rounded-full" style="width: 0%"></div>
+                            </div>
+                        </div>
+                        <div class="border border-gray-200 rounded-lg p-4 bg-yellow-50">
+                            <div class="flex justify-between items-center mb-2">
+                                <span class="font-medium">伽马波 (30-100Hz)</span>
+                                <span id="gammaValue" class="text-yellow-600 font-bold">0.0</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-2">
+                                <div id="gammaBar" class="bg-yellow-600 h-2 rounded-full" style="width: 0%"></div>
+                            </div>
+                        </div>
+                        <div class="border border-gray-200 rounded-lg p-4 bg-gray-50">
+                            <div class="flex justify-between items-center mb-2">
+                                <span class="font-medium">总能量</span>
+                                <span id="totalPowerValue" class="text-gray-600 font-bold">0.0</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-2">
+                                <div id="totalPowerBar" class="bg-gray-600 h-2 rounded-full" style="width: 100%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- 页脚 -->
+    <footer class="bg-dark text-white py-8">
+        <div class="container mx-auto px-4">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div>
+                    <h3 class="text-lg font-bold mb-4">脑电数据分析系统</h3>
+                    <p class="text-gray-400">专业的脑电数据可视化与分析平台，为神经科学研究和临床应用提供支持。</p>
+                </div>
+                <div>
+                    <h3 class="text-lg font-bold mb-4">快速链接</h3>
+                    <ul class="space-y-2 text-gray-400">
+                        <li><a href="#" class="hover:text-white transition-colors">首页</a></li>
+                        <li><a href="#features" class="hover:text-white transition-colors">功能</a></li>
+                        <li><a href="#analysis" class="hover:text-white transition-colors">分析</a></li>
+                      </ul>
+                </div>
+                <div>
+                    <h3 class="text-lg font-bold mb-4">联系我们</h3>
+                    <div class="space-y-2 text-gray-400">
+                        <p><i class="fa fa-phone mr-2"></i> 18535367435</p>
+                    </div>
+
+                </div>
+            </div>
+            <div class="border-t border-gray-800 mt-8 pt-4 text-center text-gray-500">
+                <p>&copy; 2023 脑电数据分析系统. 保留所有权利.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- 加载模态框 -->
+    <div id="loadingModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-xl p-8 max-w-md w-full text-center">
+            <div class="animate-spin rounded-full h-16 w-16 border-t-4 border-primary mx-auto mb-4"></div>
+            <h3 class="text-xl font-bold mb-2">正在处理数据...</h3>
+            <p class="text-gray-600" id="loadingMessage">请稍候，我们正在分析您的脑电数据...</p>
+        </div>
+    </div>
+
+    <!-- 结果提示 -->
+    <div id="toast" class="fixed bottom-4 right-4 bg-dark text-white px-6 py-3 rounded-lg shadow-lg transform translate-y-20 opacity-0 transition-all duration-300 z-50">
+        <div class="flex items-center">
+            <i id="toastIcon" class="fa fa-check-circle text-green-500 mr-2"></i>
+            <span id="toastMessage">操作成功</span>
+        </div>
+    </div>
+
+    <script src="src/main.js"></script>
+</body>
+</html>
